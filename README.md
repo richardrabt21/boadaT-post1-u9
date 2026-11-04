@@ -1,32 +1,60 @@
-# Laboratorio: Seguridad Web y API REST Stateless con JWT
+# Post-contenido — Unidad 9: Seguridad en Aplicaciones Web
 
-Proyecto desarrollado para la asignatura de seguridad, estructurado en un único proyecto Maven (`seguridad-web/`) que cubre autenticación basada en sesiones, mitigación de vulnerabilidades y una API REST protegida con tokens JWT.
+## Descripción
+Repositorio del laboratorio de la Unidad 9 de Programación Web —
+Séptimo Semestre. Contiene un único proyecto Maven Spring Boot
+(seguridad-web/) con dos mecanismos de autenticación coexistiendo:
+sesión (Spring Security form-login) para las vistas Thymeleaf, y
+JWT stateless para la API REST bajo /api/**.
 
-## Estructura del Proyecto
-- `src/main/java/com/universidad/seguridad/config`: Configuraciones de Spring Security (Web y API).
-- `src/main/java/com/universidad/seguridad/controller`: Controladores Web (Thymeleaf) y REST (`AuthRestController`).
-- `src/main/java/com/universidad/seguridad/security`: Utilidades JWT (`JwtUtil`) y filtros de autenticación (`JwtRequestFilter`).
-- `src/main/java/com/universidad/seguridad/service`: Lógica de negocio y detalles de usuario.
-- `src/main/java/com/universidad/seguridad/repository`: Repositorios JPA con mitigación de SQL Injection (`@Query`).
-- `capturas/`: Evidencias visuales de la ejecución del laboratorio.
+## Parte 1 — Login con Sesión, BCrypt, Roles y Mitigación Activa
+SecurityConfig define webFilterChain (@Order(2), securityMatcher
+"/**") con form-login, BCryptPasswordEncoder y autorización por rol.
+Se demuestra activamente la mitigación de XSS contrastando th:text
+(seguro) con th:utext (inseguro) sobre el mismo campo, y la de SQL
+Injection contrastando @Query parametrizado con una consulta
+concatenada documentada solo en comentario.
 
-## Evidencias en `/capturas`
-1. `01-login-sesion.png`: Login con sesión activa y BCrypt.
-2. `02-dashboard-th-text-seguro.png`: Dashboard con `th:text` seguro (XSS escapado).
-3. `03-xss-th-utext-temporal.png`: XSS ejecutado con `th:utext` (prueba temporal).
-4. `04-sql-injection-mitigado-query.png`: SQL Injection mitigado con `@Query`.
-5. `05-csrf-rechazado-403.png`: Petición sin CSRF rechazada con 403.
-6. `06-post-api-auth-login-token.png`: `POST /api/auth/login` con token JWT recibido.
-7. `07-get-api-tareas-200.png`: `GET /api/tareas` autenticado (200 OK).
-8. `08-get-api-tareas-sin-token-401.png`: `GET /api/tareas` sin token (401 Unauthorized).
+## Parte 2 — API REST Stateless Protegida con JWT
+SecurityConfig agrega apiFilterChain (@Order(1), securityMatcher
+"/api/**"), stateless (SessionCreationPolicy.STATELESS), con CSRF
+desactivado SOLO en esta cadena porque no depende de cookies.
+JwtUtil genera y valida el token (firma HMAC + expiración de 1
+hora); JwtAuthFilter (OncePerRequestFilter) lo valida en cada
+petición a /api/** y puebla el SecurityContext manualmente, sin
+consultar la base de datos en cada request.
 
-## Parte 1: Login con Sesión, BCrypt, Roles y Mitigación de XSS/SQL Injection
-- Autenticación tradicional basada en formularios y sesiones HTTP.
-- Encriptación de credenciales con `BCryptPasswordEncoder`.
-- Control de acceso por roles (`ADMIN`).
-- Mitigación de XSS mediante codificación en Thymeleaf (`th:text`) y prevención de SQL Injection mediante consultas parametrizadas con `@Query`.
+## Por qué dos mecanismos en el mismo proyecto
+Las vistas Thymeleaf sirven a un navegador con cookie de sesión: CSRF
+debe seguir activo ahí. La API sirve a clientes sin cookies (app
+móvil, SPA externa, integración de terceros): un token autocontenido
+en el header Authorization resuelve ese caso sin depender de estado
+en el servidor. Ningún mecanismo reemplaza al otro; cada uno cubre
+un tipo de cliente distinto del mismo sistema.
 
-## Parte 2: API REST Stateless Protegida con JWT
-- Configuración de políticas de sesión sin estado (`SessionCreationPolicy.STATELESS`).
-- Generación, firma y validación de tokens JWT mediante `io.jsonwebtoken` (jjwt).
-- Endpoints de autenticación y recursos protegidos mediante cabecera `Authorization: Bearer <token>`.
+## Nota de seguridad para producción
+La clave HMAC de JwtUtil está hardcodeada únicamente para simplificar
+este laboratorio. En un proyecto real debe leerse de una variable de
+entorno o de un gestor de secretos: cualquiera con acceso al código
+fuente podría firmar tokens válidos si la clave queda expuesta en el
+repositorio.
+
+## Cómo compilar y ejecutar
+1. Clonar el repositorio: `git clone https://github.com/richardrabt21/boadaT-post1-u9.git`
+2. Crear la base de datos seguridad_db en MySQL
+3. Configurar seguridad-web/src/main/resources/application.properties
+   con las credenciales de MySQL
+4. Insertar un usuario ROLE_ADMIN siguiendo la Parte 1, Paso 8
+5. Ejecutar `./mvnw spring-boot:run` dentro de seguridad-web/
+6. Vistas web: http://localhost:8080/login
+7. API: POST http://localhost:8080/api/auth/login
+
+## Capturas de pantalla
+![Formulario de login](capturas/login.png)
+![Dashboard con th:text seguro](capturas/dashboard-seguro.png)
+![XSS ejecutado con th:utext (prueba temporal)](capturas/xss-utext.png)
+![Búsqueda de tareas con @Query parametrizado](capturas/sql-injection-mitigado.png)
+![CSRF rechazado (403)](capturas/csrf-403.png)
+![POST /api/auth/login con token recibido](capturas/jwt-login.png)
+![GET /api/tareas autenticado con Bearer token](capturas/jwt-aceptado.png)
+![GET /api/tareas sin token (401)](capturas/jwt-rechazado.png)
