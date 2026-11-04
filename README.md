@@ -8,7 +8,17 @@ Proyecto desarrollado para la asignatura de seguridad, estructurado en un único
 - `src/main/java/com/universidad/seguridad/security`: Utilidades JWT (`JwtUtil`) y filtros de autenticación (`JwtRequestFilter`).
 - `src/main/java/com/universidad/seguridad/service`: Lógica de negocio y detalles de usuario.
 - `src/main/java/com/universidad/seguridad/repository`: Repositorios JPA con mitigación de SQL Injection (`@Query`).
-- `capturas/`: Evidencias visuales de la ejecución del laboratorio[cite: 9].
+- `capturas/`: Evidencias visuales de la ejecución del laboratorio.
+
+## Evidencias en `/capturas`
+1. `01-login-sesion.png`: Login con sesión activa y BCrypt.
+2. `02-dashboard-th-text-seguro.png`: Dashboard con `th:text` seguro (XSS escapado).
+3. `03-xss-th-utext-temporal.png`: XSS ejecutado con `th:utext` (prueba temporal).
+4. `04-sql-injection-mitigado-query.png`: SQL Injection mitigado con `@Query`.
+5. `05-csrf-rechazado-403.png`: Petición sin CSRF rechazada con 403.
+6. `06-post-api-auth-login-token.png`: `POST /api/auth/login` con token JWT recibido.
+7. `07-get-api-tareas-200.png`: `GET /api/tareas` autenticado (200 OK).
+8. `08-get-api-tareas-sin-token-401.png`: `GET /api/tareas` sin token (401 Unauthorized).
 
 ## Parte 1: Login con Sesión, BCrypt, Roles y Mitigación de XSS/SQL Injection
 - Autenticación tradicional basada en formularios y sesiones HTTP.
