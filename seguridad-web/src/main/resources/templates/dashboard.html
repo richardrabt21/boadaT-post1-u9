@@ -1,0 +1,14 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Dashboard</title>
+</head>
+<body>
+<h1>Dashboard</h1>
+<p>Bienvenido, <span th:text="${usuario}">Usuario</span></p>
+<a th:href="@{/admin}" th:if="${#authorization.expression('hasRole(\x27ADMIN\x27)')}">Panel de Administracion</a>
+<form th:action="@{/logout}" method="post">
+    <button type="submit">Cerrar Sesion</button>
+</form>
+</body>
+</html>

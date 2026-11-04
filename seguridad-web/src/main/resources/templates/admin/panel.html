@@ -1,0 +1,5 @@
+﻿<html xmlns:th="http://www.thymeleaf.org"><body>
+  <h1>Panel de Administración</h1>
+  <ul><li th:each="u : ${usuarios}" th:text="${u.email} - "></li></ul>
+  <a th:href="@{/dashboard}">Volver al Dashboard</a>
+</body></html>
